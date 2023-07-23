@@ -42,7 +42,7 @@ func New(storagePath string) (*Storage, error) {
 }
 
 func (s *Storage) SaveUrl(urlToSave string, alias string) (int64, error) {
-	const operation = "storage.sqlite.SaveURL"
+	const operation = "storage.sqlite.SaveUrl"
 
 	stmt, err := s.db.Prepare("INSERT INTO url(url, alias) VALUES(?, ?)")
 	if err != nil {
