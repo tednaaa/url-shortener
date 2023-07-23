@@ -18,7 +18,16 @@ jobs:
         run: go build -v ./...
 
       - name: Start App
-        run: go run ./cmd/url-shortener/main.go &
+        run: |
+          go run ./cmd/url-shortener/main.go &
+
+          # Wait for the app to become healthy (up to 60 seconds)
+          for i in {1..60}; do
+            if curl -sSf http://localhost:8080 >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
 
       - name: Test
         run: go test -v ./...
