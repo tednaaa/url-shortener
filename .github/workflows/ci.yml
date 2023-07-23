@@ -16,5 +16,16 @@ jobs:
       - name: Build
         run: go build -v ./...
 
+      - name: Start App
+        run: go run ./path/to/your/app &
+
       - name: Test
         run: go test -v ./...
+
+      - name: Stop App
+        run: |
+          # Find the process ID (PID) of your app and stop it
+          PID=$(pgrep -f "go run ./path/to/your/app")
+          if [[ -n $PID ]]; then
+            kill $PID
+          fi
