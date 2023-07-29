@@ -5,8 +5,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
+
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
