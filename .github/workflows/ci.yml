@@ -22,11 +22,6 @@ jobs:
       - name: Build
         run: go build -v ./...
 
-      - name: Run App & Tests
+      - name: Run Tests
         run: |
-          go run cmd/url-shortener/main.go &
-          sleep 5
-
           go test -v ./...
-
-          pkill -f "url-shortener"

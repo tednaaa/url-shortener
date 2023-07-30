@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"os"
 	"url-shortener/internal/config"
-	"url-shortener/internal/http-server/handlers/redirect"
+	"url-shortener/internal/http-server/handlers/url/getAll"
 	"url-shortener/internal/http-server/handlers/url/save"
 	mwLogger "url-shortener/internal/http-server/middleware/logger"
 	"url-shortener/internal/lib/logger/handlers/slogpretty"
@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"golang.org/x/exp/slog"
 )
 
@@ -37,20 +38,24 @@ func main() {
 	}
 
 	router := chi.NewRouter()
+
 	router.Use(mwLogger.New(logger))
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Route("/url", func(r chi.Router) {
-		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
-			config.HttpServer.Username: config.HttpServer.Password,
-		}))
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{"http://localhost:3000"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Authorization", "Content-Type"},
+	}))
 
-		r.Post("/", save.New(logger, storage))
-	})
+	router.Use(middleware.BasicAuth("url-shortener", map[string]string{
+		config.HttpServer.Username: config.HttpServer.Password,
+	}))
 
-	router.Get("/{alias}", redirect.New(logger, storage))
+	router.Post("/url", save.New(logger, storage))
+	router.Get("/urls", getAll.New(logger, storage))
 
 	logger.Info("starting server", slog.String("address", config.Address))
 

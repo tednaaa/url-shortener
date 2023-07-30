@@ -2,8 +2,8 @@ package sqlite
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
+	"url-shortener/internal/http-server/handlers/url/getAll"
 	"url-shortener/internal/storage"
 
 	"github.com/mattn/go-sqlite3"
@@ -66,25 +66,35 @@ func (s *Storage) SaveUrl(urlToSave string, alias string) (int64, error) {
 	return id, nil
 }
 
-func (s *Storage) GetUrl(alias string) (string, error) {
-	const operation = "storage.sqlite.GetUrl"
+func (s *Storage) GetUrls() ([]getAll.Urls, error) {
+	const operation = "storage.sqlite.GetUrls"
 
-	stmt, err := s.db.Prepare("SELECT url FROM url WHERE alias = ?")
-
+	stmt, err := s.db.Prepare("SELECT id, alias, url FROM url;")
 	if err != nil {
-		return "", fmt.Errorf("%s: prepare statement %w", operation, err)
+		return nil, fmt.Errorf("%s: prepare statement: %w", operation, err)
 	}
+	defer stmt.Close()
 
-	var responseUrl string
-
-	err = stmt.QueryRow(alias).Scan(&responseUrl)
+	rows, err := stmt.Query()
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return "", storage.ErrorUrlNotFound
+		return nil, fmt.Errorf("%s: query: %w", operation, err)
+	}
+	defer rows.Close()
+
+	var urls []getAll.Urls
+
+	for rows.Next() {
+		var url getAll.Urls
+		err := rows.Scan(&url.ID, &url.Alias, &url.URL)
+		if err != nil {
+			return nil, fmt.Errorf("%s: scan row: %w", operation, err)
 		}
-
-		return "", fmt.Errorf("%s: execute statement %w", operation, err)
+		urls = append(urls, url)
 	}
 
-	return responseUrl, nil
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: rows iteration: %w", operation, err)
+	}
+
+	return urls, nil
 }
