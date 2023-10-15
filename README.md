@@ -5,6 +5,21 @@
 <br />
 <br />
 
+> Install dependencies
+
+```
+go mod tidy
+npm ci
+```
+
+> Setup environment variables
+
+```
+cp .env.example .env
+```
+
+> Install [Air](https://github.com/cosmtrek/air#prefer-installsh) hot-reload package for Golang
+
 > Start development servers for backend & frontend
 
 ```
